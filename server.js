@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express=require('express');const path=require('path');const crypto=require('crypto');const fs=require('fs');const Database=require('better-sqlite3');
 const app=express(),PORT=Number(process.env.PORT||3000),ADMIN_KEY=process.env.ADMIN_KEY||'change-me',BOT_USERNAME=process.env.BOT_USERNAME||'';
-app.use(express.json({limit:'100kb'}));app.use(express.static(path.join(__dirname,'public')));
+app.use(express.json({limit:'100kb'}));app.use(express.static(__dirname));
 if(!fs.existsSync(path.join(__dirname,'data')))fs.mkdirSync(path.join(__dirname,'data'),{recursive:true});
 const db=new Database(path.join(__dirname,'data','hillsbyte.db'));db.pragma('journal_mode=WAL');
 db.exec(`CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY AUTOINCREMENT,telegram_id TEXT UNIQUE,username TEXT,first_name TEXT,last_name TEXT,email TEXT,email_verified INTEGER DEFAULT 0,balance REAL DEFAULT 0,pending_balance REAL DEFAULT 0,hillscoin REAL DEFAULT 0,referral_code TEXT UNIQUE,referred_by INTEGER,payment_address TEXT DEFAULT '',created_at TEXT DEFAULT CURRENT_TIMESTAMP);
@@ -27,7 +27,7 @@ app.get('/api/admin/withdrawals',admin,(req,res)=>res.json({ok:true,withdrawals:
 app.post('/api/admin/withdrawals/:id/status',admin,(req,res)=>{const s=String(req.body?.status||'');if(!['pending','paid','rejected'].includes(s))return res.status(400).json({ok:false,error:'Invalid status'});db.prepare('UPDATE withdrawals SET status=? WHERE id=?').run(s,req.params.id);res.json({ok:true});});
 app.get('/api/config',(req,res)=>res.json({ok:true,botUsername:BOT_USERNAME,appUrl:process.env.APP_URL||''}));
 app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`HillsByte running on port ${PORT}`);
