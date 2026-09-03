@@ -26,5 +26,9 @@ app.get('/api/admin/overview',admin,(req,res)=>res.json({ok:true,users:db.prepar
 app.get('/api/admin/withdrawals',admin,(req,res)=>res.json({ok:true,withdrawals:db.prepare('SELECT w.*,u.username,u.telegram_id FROM withdrawals w JOIN users u ON u.id=w.user_id ORDER BY w.id DESC LIMIT 200').all()}));
 app.post('/api/admin/withdrawals/:id/status',admin,(req,res)=>{const s=String(req.body?.status||'');if(!['pending','paid','rejected'].includes(s))return res.status(400).json({ok:false,error:'Invalid status'});db.prepare('UPDATE withdrawals SET status=? WHERE id=?').run(s,req.params.id);res.json({ok:true});});
 app.get('/api/config',(req,res)=>res.json({ok:true,botUsername:BOT_USERNAME,appUrl:process.env.APP_URL||''}));
-app.get('*',(req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
-app.listen(PORT,()=>console.log('HillsByte running on http://localhost:'+PORT));
+app.get(/.*/, (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`HillsByte running on port ${PORT}`);
+});
