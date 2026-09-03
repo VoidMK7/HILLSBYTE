@@ -17,11 +17,110 @@ app.post('/api/auth',(req,res)=>{try{res.json({ok:true,user:createUser(req.body?
 app.get('/api/me',(req,res)=>{const u=reqUser(req);if(!u)return res.status(401).json({ok:false,error:'Not authenticated'});res.json({ok:true,user:u});});
 app.patch('/api/profile',(req,res)=>{const u=reqUser(req);if(!u)return res.status(401).json({ok:false,error:'Not authenticated'});const e=req.body?.email,a=req.body?.paymentAddress;if(e!==undefined&&String(e).length>160)return res.status(400).json({ok:false,error:'Email is too long'});if(a!==undefined&&String(a).length>120)return res.status(400).json({ok:false,error:'Payment address is too long'});db.prepare('UPDATE users SET email=COALESCE(?,email),payment_address=COALESCE(?,payment_address) WHERE id=?').run(e??null,a??null,u.id);res.json({ok:true,user:db.prepare('SELECT * FROM users WHERE id=?').get(u.id)});});
 app.post('/api/email/verify-demo',(req,res)=>{const u=reqUser(req);if(!u)return res.status(401).json({ok:false,error:'Not authenticated'});if(!u.email)return res.status(400).json({ok:false,error:'Add an email first'});db.prepare('UPDATE users SET email_verified=1 WHERE id=?').run(u.id);res.json({ok:true});});
-app.get('/api/tasks',(req,res)=>{const u=reqUser(req);if(!u)return res.status(401).json({ok:false,error:'Not authenticated'});res.json({ok:true,tasks:db.prepare('SELECT t.id,t.title,t.description,t.reward,t.reward_coin,t.url,CASE WHEN c.id IS NULL THEN 0 ELSE 1 END completed FROM tasks t LEFT JOIN completions c ON c.task_id=t.id AND c.user_id=? WHERE t.active=1 ORDER BY t.id DESC').all(u.id)});});
-app.post('/api/tasks/:id/complete',(req,res)=>{const u=reqUser(req);if(!u)return res.status(401).json({ok:false,error:'Not authenticated'});const t=db.prepare('SELECT * FROM tasks WHERE id=? AND active=1').get(req.params.id);if(!t)return res.status(404).json({ok:false,error:'Task not found'});if(db.prepare('SELECT 1 FROM completions WHERE user_id=? AND task_id=?').get(u.id,t.id))return res.status(409).json({ok:false,error:'Task already completed'});const tx=db.transaction(()=>{db.prepare("INSERT INTO completions(user_id,task_id,status) VALUES(?,?,'completed')").run(u.id,t.id);db.prepare('UPDATE users SET balance=balance+? WHERE id=?').run(t.reward,u.id);db.prepare('INSERT INTO transactions(user_id,type,amount,currency,note) VALUES(?,?,?,?,?)').run(u.id,'task_reward',t.reward,t.reward_coin,t.title);});tx();res.json({ok:true,user:db.prepare('SELECT * FROM users WHERE id=?').get(u.id)});});
-app.get('/api/transactions',(req,res)=>{const u=reqUser(req);if(!u)return res.status(401).json({ok:false,error:'Not authenticated'});res.json({ok:true,transactions:db.prepare('SELECT * FROM transactions WHERE user_id=? ORDER BY id DESC LIMIT 100').all(u.id)});});
+app.get('/api/tasks',(req,res)=>{const u=reqUser(req);if(!u)return res.status(401).json({ok:false,error:'Not authenticated'});res.json({ok:true,tasks:db.prepare('SELECT t.id,t.title,t.description,t.reward,t.reward_coin,t.url,CASE WHEN c.id IS NULL THEN 0 ELSE 1 END completed FROM tasks t LEFT JOIN completions c ON c.task_id=t.id AND c.user_id=? WHERE t.active=1 ORDER BY t.id DESC').all(u.id)})').run(u.id,'task_reward',t.reward,t.reward_coin,t.title);});tx();res.json({ok:true,user:db.prepare('SELECT * FROM users WHERE id=?').get(u.id)});});
+app.get('/api/transactions',(req,res)=>{const u=reqUser(req);if(!u)return res.status(401).json({ok:false,error:'Not authenticated'});res.json({ok:true,transactions:db.prepare('SELECT * FROM transactions WHERE user_id=? ORDER BY id DESC LIMIT 100').all(u.id
 app.post('/api/withdraw',(req,res)=>{const u=reqUser(req);if(!u)return res.status(401).json({ok:false,error:'Not authenticated'});const amount=Number(req.body?.amount),address=String(req.body?.paymentAddress||u.payment_address||'').trim();if(!Number.isFinite(amount)||amount<=0)return res.status(400).json({ok:false,error:'Invalid withdrawal amount'});if(!/^0x[a-fA-F0-9]{40}$/.test(address))return res.status(400).json({ok:false,error:'Enter a valid BEP20-compatible EVM address'});if(amount<1)return res.status(400).json({ok:false,error:'Minimum withdrawal is $1 in this starter'});if(amount>u.balance)return res.status(400).json({ok:false,error:'Insufficient available balance'});const tx=db.transaction(()=>{db.prepare('UPDATE users SET balance=balance-?,payment_address=? WHERE id=?').run(amount,address,u.id);db.prepare('INSERT INTO withdrawals(user_id,amount,payment_address) VALUES(?,?,?)').run(u.id,amount,address);db.prepare("INSERT INTO transactions(user_id,type,amount,currency,note) VALUES(?,'withdrawal',?,'USD','Withdrawal request')").run(u.id,amount);});tx();res.json({ok:true,message:'Withdrawal request submitted'});});
-function admin(req,res,next){if(req.header('x-admin-key')!==ADMIN_KEY)return res.status(403).json({ok:false,error:'Forbidden'});next();}
+app.get('/api/tasks',(req,res)=>{
+  const u=reqUser(req);
+  if(!u)return res.status(401).json({ok:false,error:'Not authenticated'});
+
+  const tasks=db.prepare(`
+    SELECT
+      t.id,
+      t.title,
+      t.description,
+      t.reward,
+      t.reward_coin,
+      t.url,
+      COALESCE(c.status,'available') AS status,
+      CASE
+        WHEN c.status='approved' THEN 1
+        ELSE 0
+      END AS completed
+    FROM tasks t
+    LEFT JOIN completions c
+      ON c.task_id=t.id
+      AND c.user_id=?
+    WHERE t.active=1
+    ORDER BY t.id DESC
+  `).all(u.id);
+
+  res.json({ok:true,tasks});
+});
+
+
+app.post('/api/tasks/:id/submit',(req,res)=>{
+  const u=reqUser(req);
+  if(!u)return res.status(401).json({ok:false,error:'Not authenticated'});
+
+  const t=db.prepare(
+    'SELECT * FROM tasks WHERE id=? AND active=1'
+  ).get(req.params.id);
+
+  if(!t){
+    return res.status(404).json({
+      ok:false,
+      error:'Task not found'
+    });
+  }
+
+  const proof=String(req.body?.proof||'').trim();
+
+  if(!proof){
+    return res.status(400).json({
+      ok:false,
+      error:'Screenshot proof is required'
+    });
+  }
+
+  /*
+    The proof is temporarily stored directly in SQLite.
+    We will handle proper image storage separately.
+  */
+
+  const existing=db.prepare(
+    'SELECT * FROM completions WHERE user_id=? AND task_id=?'
+  ).get(u.id,t.id);
+
+  if(existing){
+    if(existing.status==='pending'){
+      return res.status(409).json({
+        ok:false,
+        error:'This task is already pending review'
+      });
+    }
+
+    if(existing.status==='approved'){
+      return res.status(409).json({
+        ok:false,
+        error:'Task already approved'
+      });
+    }
+
+    if(existing.status==='rejected'){
+      db.prepare(`
+        UPDATE completions
+        SET status='pending', proof=?
+        WHERE user_id=? AND task_id=?
+      `).run(proof,u.id,t.id);
+
+      return res.json({
+        ok:true,
+        message:'Proof resubmitted for review'
+      });
+    }
+  }
+
+  db.prepare(`
+    INSERT INTO completions(user_id,task_id,status,proof)
+    VALUES(?,?,'pending',?)
+  `).run(u.id,t.id,proof);
+
+  res.json({
+    ok:true,
+    message:'Proof submitted. Waiting for review.'
+  });
+});
 app.get('/api/admin/overview',admin,(req,res)=>res.json({ok:true,users:db.prepare('SELECT COUNT(*) n FROM users').get().n,pendingWithdrawals:db.prepare("SELECT COUNT(*) n FROM withdrawals WHERE status='pending'").get().n,paidWithdrawals:db.prepare("SELECT COALESCE(SUM(amount),0) total FROM withdrawals WHERE status='paid'").get().total}));
 app.get('/api/admin/withdrawals',admin,(req,res)=>res.json({ok:true,withdrawals:db.prepare('SELECT w.*,u.username,u.telegram_id FROM withdrawals w JOIN users u ON u.id=w.user_id ORDER BY w.id DESC LIMIT 200').all()}));
 app.post('/api/admin/withdrawals/:id/status',admin,(req,res)=>{const s=String(req.body?.status||'');if(!['pending','paid','rejected'].includes(s))return res.status(400).json({ok:false,error:'Invalid status'});db.prepare('UPDATE withdrawals SET status=? WHERE id=?').run(s,req.params.id);res.json({ok:true});});
