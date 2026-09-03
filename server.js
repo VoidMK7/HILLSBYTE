@@ -1705,7 +1705,7 @@ app.get('/api/health', (req, res) => {
 
 /* FRONTEND */
 
-app.get('*', (req, res) => {
+app.use((req, res) => {
 
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({
