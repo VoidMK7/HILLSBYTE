@@ -1,6 +1,208 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07120d"><title>HillsByte</title><link rel="stylesheet" href="/style.css"><script src="https://telegram.org/js/telegram-web-app.js"></script></head><body><div class="app"><header><div><div class="brand">HILLS<span>BYTE</span></div><small>Earn • Complete • Grow</small></div><button id="refresh">↻</button></header><main>
-<section id="home" class="page active"><div class="card hero"><small>AVAILABLE BALANCE</small><div id="balance" class="balance">$0.00</div><p>Pending <b id="pending">$0.00</b></p><div class="wallet"><span>HillsCoin<br><b id="hillscoin">0 HBC</b></span><i>H</i></div></div><div class="grid"><div class="card stat">Lifetime<b id="lifetime">$0.00</b></div><div class="card stat">Referrals<b id="referrals">0</b></div></div><h2>Quick actions</h2><div class="grid"><button class="card action" data-page="tasks">✓<b>Earn</b><small>View tasks</small></button><button class="card action" data-page="profile">◎<b>Profile</b><small>Account & wallet</small></button><button class="card action" data-page="withdraw">↗<b>Withdraw</b><small>Request payout</small></button><button class="card action" data-page="history">≡<b>History</b><small>Transactions</small></button></div><div class="card ref"><span><small>YOUR REFERRAL CODE</small><b id="refCode">—</b></span><button id="copy" class="secondary">Copy</button></div></section>
-<section id="tasks" class="page"><h1>Tasks</h1><p>Complete available campaigns and earn rewards.</p><div id="taskList"></div></section>
-<section id="profile" class="page"><h1>Profile</h1><p>Your account details.</p><div class="card profile"><div id="avatar">H</div><div><b id="name">User</b><small id="username">@user</small></div></div><form id="profileForm" class="card form"><label>Email<input id="email" type="email" placeholder="you@example.com"></label><button type="button" id="verify" class="secondary">Verify email (demo)</button><label>BEP20 payment address<input id="address" placeholder="0x..."></label><small>Never enter a seed phrase or private key.</small><button class="primary">Save profile</button></form><div class="card"><small>TELEGRAM ID</small><div id="tgid">—</div></div></section>
-<section id="withdraw" class="page"><h1>Withdraw</h1><p>Submit a payout request for review.</p><form id="withdrawForm" class="card form"><div class="available">Available <b id="available">$0.00</b></div><label>Amount (USD)<input id="amount" type="number" min="1" step=".01" required></label><label>BEP20 address<input id="withdrawAddress" required placeholder="0x..."></label><button class="primary">Submit withdrawal</button><div id="withdrawMsg" class="notice hidden"></div></form></section>
-<section id="history" class="page"><h1>History</h1><p>Your latest transactions.</p><div id="historyList" class="card"></div></section></main><nav><button data-page="home">⌂<small>Home</small></button><button data-page="tasks">✓<small>Tasks</small></button><button data-page="withdraw">↗<small>Withdraw</small></button><button data-page="profile">◎<small>Profile</small></button></nav></div><div id="toast" class="toast"></div><script src="/app.js"></script></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HillsByte Prototype</title>
+<style>
+/* ====== GLOBAL STYLES ====== */
+body {
+  margin:0; font-family: 'Segoe UI', sans-serif;
+  background:#121212; color:#e0e0e0;
+}
+header {
+  background:#0f1f0f; color:#9acd32; padding:1rem; text-align:center;
+  font-weight:bold; font-size:1.2rem;
+}
+.container { padding:1rem; }
+.card {
+  background:#1e1e1e; border-radius:12px; padding:1rem; margin-bottom:1rem;
+}
+button {
+  background:#0f3d0f; color:#fff; border:none; padding:.6rem 1rem;
+  border-radius:8px; font-size:.9rem; cursor:pointer;
+}
+button:active { transform:scale(.97); }
+nav {
+  position:fixed; bottom:0; left:0; right:0;
+  background:#0f1f0f; display:flex; justify-content:space-around;
+  padding:.5rem 0;
+}
+nav button { flex:1; margin:0 .3rem; }
+
+/* Toast */
+.toast {
+  position:fixed; bottom:60px; left:50%; transform:translateX(-50%);
+  background:#333; color:#fff; padding:.5rem 1rem; border-radius:6px;
+  opacity:0; transition:opacity .3s;
+}
+.toast.show { opacity:1; }
+
+/* Modal */
+.modal {
+  position:fixed; top:0; left:0; right:0; bottom:0;
+  background:rgba(0,0,0,.8); display:none; justify-content:center; align-items:center;
+}
+.modal-content {
+  background:#1e1e1e; border-radius:12px; padding:1rem; width:90%; max-height:80%;
+  overflow-y:auto;
+}
+.modal-content img { max-width:100px; margin:.3rem; border-radius:6px; }
+
+/* Progress bar */
+.progress {
+  background:#333; border-radius:8px; overflow:hidden; height:12px;
+}
+.progress div {
+  background:#0f3d0f; height:100%; width:0%;
+}
+
+/* Tables */
+table { width:100%; border-collapse:collapse; }
+td,th { padding:.5rem; border-bottom:1px solid #333; }
+</style>
+</head>
+<body>
+<header>🌄 HillsByte Dashboard</header>
+<div class="container" id="main"></div>
+
+<!-- Bottom Navigation -->
+<nav>
+  <button onclick="showSection('dashboard')">Dashboard</button>
+  <button onclick="showSection('earn')">Earn</button>
+  <button onclick="showSection('referral')">Referral</button>
+  <button onclick="showSection('wallet')">Wallet</button>
+  <button onclick="showSection('activity')">Activity</button>
+  <button onclick="showSection('profile')">Profile</button>
+</nav>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Modal -->
+<div class="modal" id="taskModal">
+  <div class="modal-content" id="taskContent"></div>
+</div>
+
+<script>
+/* ====== DISCLAIMER ======
+This is a FRONTEND PROTOTYPE ONLY.
+Real production requires backend authentication, secure storage, payment integration, fraud prevention, etc.
+Balances are DEMO ONLY.
+================================= */
+
+/* ====== DATA ====== */
+let data = JSON.parse(localStorage.getItem('hillsbyte')) || {
+  available:0, pending:0, lifetime:0,
+  referrals:0, referralEarnings:0,
+  submissions:[], activity:[], streak:0, lastCheckin:null,
+  email:"", language:"English", currency:"USD"
+};
+save();
+
+function save(){ localStorage.setItem('hillsbyte',JSON.stringify(data)); }
+
+/* ====== UTIL ====== */
+function toast(msg){
+  let t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+function showSection(sec){
+  let m=document.getElementById('main');
+  if(sec==='dashboard') renderDashboard(m);
+  if(sec==='earn') renderEarn(m);
+  if(sec==='referral') renderReferral(m);
+  if(sec==='wallet') renderWallet(m);
+  if(sec==='activity') renderActivity(m);
+  if(sec==='profile') renderProfile(m);
+}
+
+/* ====== DASHBOARD ====== */
+function renderDashboard(m){
+  m.innerHTML=`
+  <div class="card">
+    <h2>Balances</h2>
+    <p>Available: $${data.available.toFixed(2)}</p>
+    <p>Pending: $${data.pending.toFixed(2)}</p>
+    <p>Lifetime: $${data.lifetime.toFixed(2)}</p>
+    <p>Referrals: ${data.referrals}</p>
+  </div>
+  <div class="card">
+    <h2>Daily Check-in</h2>
+    <p>Streak: ${data.streak} days</p>
+    <button onclick="checkin()">Check-in (+25 HC)</button>
+  </div>
+  <div class="card">
+    <h2>Quick Actions</h2>
+    <button onclick="showSection('earn')">Earn</button>
+    <button onclick="showSection('referral')">Referral</button>
+    <button onclick="showSection('wallet')">Wallet</button>
+    <button onclick="showSection('activity')">Activity</button>
+  </div>`;
+}
+function checkin(){
+  let today=new Date().toDateString();
+  if(data.lastCheckin===today){ toast("Already checked in today"); return; }
+  data.lastCheckin=today; data.streak++;
+  data.activity.push({type:"checkin",msg:"Daily check-in +25 HC",date:new Date()});
+  save(); toast("Check-in successful!");
+  showSection('dashboard');
+}
+
+/* ====== EARN ====== */
+const tasks=[
+  {title:"Website Experience Review",reward:0.75,desc:"Review a website UX.",status:"Available"},
+  {title:"App Engagement Verification",reward:1.20,desc:"Verify app engagement.",status:"Available"},
+  {title:"Traffic Quality Task",reward:0.50,desc:"Check traffic quality.",status:"Available"},
+  {title:"Content Interaction",reward:0.35,desc:"Interact with content.",status:"Available"}
+];
+function renderEarn(m){
+  m.innerHTML='<h2>Task Marketplace</h2>';
+  tasks.forEach((t,i)=>{
+    m.innerHTML+=`
+    <div class="card">
+      <h3>${t.title}</h3>
+      <p>${t.desc}</p>
+      <p>Reward: $${t.reward}</p>
+      <p>Status: ${t.status}</p>
+      <button onclick="openTask(${i})">View Task</button>
+    </div>`;
+  });
+}
+function openTask(i){
+  let t=tasks[i];
+  let c=document.getElementById('taskContent');
+  c.innerHTML=`
+    <h2>${t.title}</h2>
+    <p>${t.desc}</p>
+    <p>Reward: $${t.reward}</p>
+    <textarea id="submissionText" placeholder="Enter submission text"></textarea>
+    <input type="file" id="screenshots" multiple accept="image/*" onchange="previewShots()">
+    <div id="shotPreview"></div>
+    <button onclick="submitTask(${i})">Submit for Review</button>
+    <button onclick="closeModal()">Close</button>`;
+  document.getElementById('taskModal').style.display='flex';
+}
+function previewShots(){
+  let files=document.getElementById('screenshots').files;
+  let p=document.getElementById('shotPreview'); p.innerHTML="";
+  [...files].slice(0,3).forEach(f=>{
+    let url=URL.createObjectURL(f);
+    p.innerHTML+=`<img src="${url}">`;
+  });
+}
+function submitTask(i){
+  let t=tasks[i];
+  let text=document.getElementById('submissionText').value;
+  let files=document.getElementById('screenshots').files;
+  let shots=[...files].slice(0,3).map(f=>f.name);
+  let sub={task:t.title,reward:t.reward,text,shots,date:new Date(),status:"Under Review"};
+  data.submissions.push(sub);
+  data.pending+=t.reward;
+  data.activity.push({type:"submission",msg:`Submitted ${t.title}`,date:new Date()});
+  save(); toast("Task submitted for review");
+  closeModal();
+}
+
+/* ====== MODAL
