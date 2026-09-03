@@ -128,7 +128,105 @@ app.post('/api/tasks/:id/submit',(req,res)=>{
   });
 });
 app.get('/api/admin/overview',admin,(req,res)=>res.json({ok:true,users:db.prepare('SELECT COUNT(*) n FROM users').get().n,pendingWithdrawals:db.prepare("SELECT COUNT(*) n FROM withdrawals WHERE status='pending'").get().n,paidWithdrawals:db.prepare("SELECT COALESCE(SUM(amount),0) total FROM withdrawals WHERE status='paid'").get().total}));
-app.get('/api/admin/withdrawals',admin,(req,res)=>res.json({ok:true,withdrawals:db.prepare('SELECT w.*,u.username,u.telegram_id FROM withdrawals w JOIN users u ON u.id=w.user_id ORDER BY w.id DESC LIMIT 200').all()}));
+app.get('/api/admin/withdrawals',admin,(req,res)=>res.json({ok:true,withdrawals:db.prepare('SELECT w.*,u.username,u.telegram_id FROM withdrawals w JOIN users u ON u.id=w.user_id ORDER BY w.id DESC LIMIT 200').all()}));app.get('/api/admin/task-submissions',admin,(req,res)=>{
+  const submissions=db.prepare(`
+    SELECT
+      c.id,
+      c.user_id,
+      c.task_id,
+      c.status,
+      c.proof,
+      c.created_at,
+      u.username,
+      u.telegram_id,
+      u.first_name,
+      u.last_name,
+      t.title AS task_title,
+      t.reward,
+      t.reward_coin
+    FROM completions c
+    JOIN users u ON u.id=c.user_id
+    JOIN tasks t ON t.id=c.task_id
+    ORDER BY c.id DESC
+    LIMIT 200
+  `).all();
+
+  res.json({
+    ok:true,
+    submissions
+  });
+});
+
+
+app.post('/api/admin/task-submissions/:id/status',admin,(req,res)=>{
+  const status=String(req.body?.status||'');
+
+  if(!['approved','rejected'].includes(status)){
+    return res.status(400).json({
+      ok:false,
+      error:'Invalid status'
+    });
+  }
+
+  const submission=db.prepare(`
+    SELECT c.*,t.reward,t.reward_coin,t.title
+    FROM completions c
+    JOIN tasks t ON t.id=c.task_id
+    WHERE c.id=?
+  `).get(req.params.id);
+
+  if(!submission){
+    return res.status(404).json({
+      ok:false,
+      error:'Submission not found'
+    });
+  }
+
+  if(submission.status==='approved'){
+    return res.status(409).json({
+      ok:false,
+      error:'This submission has already been approved'
+    });
+  }
+
+  if(submission.status==='rejected'){
+    return res.status(409).json({
+      ok:false,
+      error:'This submission has already been rejected'
+    });
+  }
+
+  const tx=db.transaction(()=>{
+    db.prepare(
+      'UPDATE completions SET status=? WHERE id=?'
+    ).run(status,submission.id);
+
+    if(status==='approved'){
+      db.prepare(
+        'UPDATE users SET balance=balance+? WHERE id=?'
+      ).run(submission.reward,submission.user_id);
+
+      db.prepare(`
+        INSERT INTO transactions
+        (user_id,type,amount,currency,note)
+        VALUES(?,?,?,?,?)
+      `).run(
+        submission.user_id,
+        'task_reward',
+        submission.reward,
+        submission.reward_coin,
+        submission.title
+      );
+    }
+  });
+
+  tx();
+
+  res.json({
+    ok:true,
+    status
+  });
+});
 app.post('/api/admin/withdrawals/:id/status',admin,(req,res)=>{const s=String(req.body?.status||'');if(!['pending','paid','rejected'].includes(s))return res.status(400).json({ok:false,error:'Invalid status'});db.prepare('UPDATE withdrawals SET status=? WHERE id=?').run(s,req.params.id);res.json({ok:true});});
 app.get('/api/config',(req,res)=>res.json({ok:true,botUsername:BOT_USERNAME,appUrl:process.env.APP_URL||''}));
 app.get(/.*/, (req, res) => {
