@@ -119,7 +119,25 @@ app.post('/api/tasks/:id/submit',(req,res)=>{
     message:'Proof submitted. Waiting for review.'
   });
 });
-app.get('/api/transactions',(req,res)=>{const u=reqUser(req);if(!u)return res.status(401).json({ok:false,error:'Not authenticated'});res.json({ok:true,transactions:db.prepare('SELECT * FROM transactions WHERE user_id=? ORDER BY id DESC LIMIT 100').all(u.id
+app.get('/api/transactions',(req,res)=>{
+  const u=reqUser(req);
+
+  if(!u){
+    return res.status(401).json({
+      ok:false,
+      error:'Not authenticated'
+    });
+  }
+
+  const transactions=db.prepare(
+    'SELECT * FROM transactions WHERE user_id=? ORDER BY id DESC LIMIT 100'
+  ).all(u.id);
+
+  res.json({
+    ok:true,
+    transactions
+  });
+});
 app.post('/api/withdraw',(req,res)=>{const u=reqUser(req);if(!u)return res.status(401).json({ok:false,error:'Not authenticated'});const amount=Number(req.body?.amount),address=String(req.body?.paymentAddress||u.payment_address||'').trim();if(!Number.isFinite(amount)||amount<=0)return res.status(400).json({ok:false,error:'Invalid withdrawal amount'});if(!/^0x[a-fA-F0-9]{40}$/.test(address))return res.status(400).json({ok:false,error:'Enter a valid BEP20-compatible EVM address'});if(amount<1)return res.status(400).json({ok:false,error:'Minimum withdrawal is $1 in this starter'});if(amount>u.balance)return res.status(400).json({ok:false,error:'Insufficient available balance'});const tx=db.transaction(()=>{db.prepare('UPDATE users SET balance=balance-?,payment_address=? WHERE id=?').run(amount,address,u.id);db.prepare('INSERT INTO withdrawals(user_id,amount,payment_address) VALUES(?,?,?)').run(u.id,amount,address);db.prepare("INSERT INTO transactions(user_id,type,amount,currency,note) VALUES(?,'withdrawal',?,'USD','Withdrawal request')").run(u.id,amount);});tx();res.json({ok:true,message:'Withdrawal request submitted'});});
 app.get('/api/tasks',(req,res)=>{
   const u=reqUser(req);
