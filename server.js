@@ -8,7 +8,13 @@ db.exec(`CREATE TABLE IF NOT EXISTS users(id INTEGER PRIMARY KEY AUTOINCREMENT,t
 CREATE TABLE IF NOT EXISTS tasks(id INTEGER PRIMARY KEY AUTOINCREMENT,title TEXT NOT NULL,description TEXT DEFAULT '',reward REAL NOT NULL,reward_coin TEXT DEFAULT 'USD',url TEXT DEFAULT '#',active INTEGER DEFAULT 1);
 CREATE TABLE IF NOT EXISTS completions(id INTEGER PRIMARY KEY AUTOINCREMENT,user_id INTEGER NOT NULL,task_id INTEGER NOT NULL,status TEXT DEFAULT 'completed',created_at TEXT DEFAULT CURRENT_TIMESTAMP,UNIQUE(user_id,task_id));
 CREATE TABLE IF NOT EXISTS withdrawals(id INTEGER PRIMARY KEY AUTOINCREMENT,user_id INTEGER NOT NULL,amount REAL NOT NULL,payment_address TEXT NOT NULL,status TEXT DEFAULT 'pending',created_at TEXT DEFAULT CURRENT_TIMESTAMP);
-CREATE TABLE IF NOT EXISTS transactions(id INTEGER PRIMARY KEY AUTOINCREMENT,user_id INTEGER NOT NULL,type TEXT NOT NULL,amount REAL NOT NULL,currency TEXT DEFAULT 'USD',note TEXT DEFAULT '',created_at TEXT DEFAULT CURRENT_TIMESTAMP);`);
+CREATE TABLE IF NOT EXISTS transactions(id INTEGER PRIMARY KEY AUTOINCREMENT,user_id INTEGER NOT NULL,type TEXT NOT NULL,amount REAL NOT NULL,currency TEXT DEFAULT 'USD',note TEXT DEFAULT '',created_at TEXT DEFAULT CURRENT_TIMESTAMP);`);try {
+  db.prepare('ALTER TABLE completions ADD COLUMN proof TEXT').run();
+} catch (e) {
+  if (!String(e.message).includes('duplicate column name')) {
+    throw e;
+  }
+}
 if(db.prepare('SELECT COUNT(*) n FROM tasks').get().n===0){const i=db.prepare('INSERT INTO tasks(title,description,reward,reward_coin,url) VALUES(?,?,?,?,?)');[['Welcome Task','Open the task page and follow its instructions.',.25,'USD','https://example.com'],['HillsByte Starter','Read the campaign information.',.10,'USD','https://example.com'],['Community Task','Visit the campaign page.',.15,'USD','https://example.com']].forEach(x=>i.run(...x));}
 function ref(){let c;do c='HB'+crypto.randomBytes(4).toString('hex').toUpperCase();while(db.prepare('SELECT 1 FROM users WHERE referral_code=?').get(c));return c;}
 function reqUser(req){const id=String(req.header('x-user-id')||'');return id?db.prepare('SELECT * FROM users WHERE id=?').get(id):null;}
