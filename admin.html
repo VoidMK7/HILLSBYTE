@@ -1,365 +1,1054 @@
-<!doctype html>
-<html>
+<!DOCTYPE html><html lang="en">
 <head>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>HillsByte Admin</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HillsByte Admin</title>  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-<style>
-body{
-  font-family:system-ui;
-  background:#07100b;
-  color:#eee;
-  max-width:1000px;
-  margin:auto;
-  padding:20px
-}
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #06100a;
+      color: #f4fff7;
+    }
 
-input,button{
-  padding:10px;
-  background:#0d1912;
-  color:#fff;
-  border:1px solid #284333;
-  border-radius:8px
-}
+    button,
+    input,
+    textarea,
+    select {
+      font: inherit;
+    }
 
-button{cursor:pointer}
+    button {
+      cursor: pointer;
+    }
 
-.grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:10px
-}
+    .container {
+      width: min(1200px, 100%);
+      margin: auto;
+      padding: 18px;
+    }
 
-.card{
-  background:#0d1912;
-  border:1px solid #1d3427;
-  border-radius:12px;
-  padding:15px;
-  margin:10px 0
-}
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
 
-table{
-  width:100%;
-  border-collapse:collapse
-}
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
-td,th{
-  padding:9px;
-  border-bottom:1px solid #1d3427;
-  text-align:left;
-  font-size:13px;
-  vertical-align:top
-}
+    .logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      background: #123b24;
+      border: 1px solid #286a40;
+      font-weight: 900;
+      color: #7dffa9;
+    }
 
-.proof{
-  max-width:180px;
-  max-height:220px;
-  border-radius:8px;
-  object-fit:contain;
-  background:#000;
-  display:block
-}
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
 
-.approve{
-  border-color:#276b3b
-}
+    h1 {
+      margin-bottom: 3px;
+      font-size: 24px;
+    }
 
-.reject{
-  border-color:#6b2727
-}
+    .subtitle {
+      color: #8ea897;
+      font-size: 13px;
+      margin: 0;
+    }
 
-.status-pending{
-  color:#ffd166
-}
+    .key-box {
+      display: flex;
+      gap: 8px;
+      width: min(420px, 100%);
+    }
 
-.status-approved{
-  color:#5ee88a
-}
+    input,
+    textarea,
+    select {
+      width: 100%;
+      background: #0b1a11;
+      color: #fff;
+      border: 1px solid #234532;
+      border-radius: 10px;
+      padding: 11px 12px;
+      outline: none;
+    }
 
-.status-rejected{
-  color:#ff7777
-}
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: #3f9d5d;
+    }
 
-@media(max-width:650px){
-  .grid{grid-template-columns:1fr}
-  table{font-size:11px}
-  td,th{padding:7px}
-  .proof{max-width:120px}
-}
-</style>
-</head>
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
 
-<body>
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: #fff;
+      background: #174d2d;
+      border: 1px solid #286a40;
+      font-weight: 700;
+    }
 
-<h1>HillsByte Admin</h1>
+    button:hover {
+      background: #1e6339;
+    }
 
-<input id="key" type="password" placeholder="Admin key">
-<button onclick="load()">Load</button>
+    button.danger {
+      background: #521b1b;
+      border-color: #853333;
+    }
 
-<div id="stats" class="grid"></div>
+    button.danger:hover {
+      background: #702020;
+    }
+
+    button.warning {
+      background: #594516;
+      border-color: #8d7129;
+    }
+
+    button.secondary {
+      background: #14231a;
+      border-color: #2a4334;
+    }
+
+    button.success {
+      background: #176536;
+      border-color: #2c8c4f;
+    }
+
+    button.small {
+      padding: 7px 9px;
+      font-size: 12px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .notice {
+      background: #0b1a11;
+      border: 1px solid #234532;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      color: #a9c0b0;
+    }
+
+    .error {
+      color: #ff9c9c;
+    }
+
+    .success-text {
+      color: #7dffa9;
+    }
+
+    .grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .stats {
+      grid-template-columns: repeat(3, 1fr);
+      margin-bottom: 18px;
+    }
+
+    .two {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .card {
+      background: #0b1710;
+      border: 1px solid #1e3828;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.15);
+    }
+
+    .stat {
+      padding: 17px;
+    }
+
+    .stat-value {
+      font-size: 25px;
+      font-weight: 900;
+      margin-bottom: 3px;
+    }
+
+    .stat-label {
+      color: #8ea897;
+      font-size: 13px;
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 12px;
+    }
+
+    .field {
+      margin-bottom: 12px;
+    }
+
+    .field label {
+      display: block;
+      color: #a9c0b0;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    .task-list,
+    .submission-list,
+    .withdrawal-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .task-item,
+    .submission-item,
+    .withdrawal-item {
+      background: #09140d;
+      border: 1px solid #1d3526;
+      border-radius: 12px;
+      padding: 13px;
+    }
+
+    .item-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .item-title {
+      font-weight: 800;
+      font-size: 15px;
+    }
+
+    .item-description {
+      color: #9db2a4;
+      font-size: 13px;
+      margin-top: 5px;
+      line-height: 1.5;
+    }
+
+    .reward {
+      color: #7dffa9;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .meta {
+      color: #789080;
+      font-size: 11px;
+      margin-top: 8px;
+      word-break: break-all;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 12px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 8px;
+      border-radius: 999px;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      background: #17251b;
+      color: #a8bcae;
+      border: 1px solid #2b4233;
+    }
+
+    .badge.active,
+    .badge.approved,
+    .badge.paid {
+      background: #123c22;
+      color: #7dffa9;
+      border-color: #286a40;
+    }
+
+    .badge.pending {
+      background: #403516;
+      color: #ffe08a;
+      border-color: #766126;
+    }
+
+    .badge.rejected,
+    .badge.inactive {
+      background: #3a1717;
+      color: #ff9c9c;
+      border-color: #6d2d2d;
+    }
+
+    .proof {
+      margin-top: 12px;
+      background: #050b07;
+      border: 1px solid #1c3024;
+      border-radius: 10px;
+      padding: 8px;
+      text-align: center;
+    }
+
+    .proof img {
+      max-width: 100%;
+      max-height: 450px;
+      border-radius: 8px;
+      display: block;
+      margin: auto;
+    }
+
+    .proof-link {
+      color: #7dffa9;
+      word-break: break-all;
+      font-size: 12px;
+    }
+
+    .empty {
+      color: #789080;
+      padding: 20px 5px;
+      text-align: center;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.78);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      z-index: 1000;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-box {
+      width: min(650px, 100%);
+      max-height: 90vh;
+      overflow: auto;
+      background: #0b1710;
+      border: 1px solid #2b4935;
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+    }
+
+    .close {
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      font-size: 20px;
+      background: #15231a;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%) translateY(20px);
+      background: #123c22;
+      color: #dffff0;
+      border: 1px solid #286a40;
+      padding: 11px 15px;
+      border-radius: 10px;
+      opacity: 0;
+      pointer-events: none;
+      transition: .2s;
+      z-index: 2000;
+      max-width: 90%;
+      text-align: center;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 750px) {
+      .stats,
+      .two,
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .container {
+        padding: 12px;
+      }
+
+      .key-box {
+        width: 100%;
+      }
+
+      .item-top {
+        flex-direction: column;
+      }
+
+      .reward {
+        align-self: flex-start;
+      }
+    }
+  </style></head><body><div class="container">  <header>
+    <div class="brand">
+      <div class="logo">HB</div>
+      <div>
+        <h1>HillsByte Admin</h1>
+        <p class="subtitle">Manage tasks, submissions and withdrawals</p>
+      </div>
+    </div><div class="key-box">
+  <input
+    id="adminKey"
+    type="password"
+    placeholder="Enter admin key"
+    autocomplete="off"
+  >
+  <button onclick="login()">Load</button>
+</div>
+
+  </header>  <div id="message" class="notice">
+    Enter your admin key and press Load.
+  </div>  <main id="dashboard" class="hidden"><!-- STATS -->
+
+<section class="grid stats">
+
+  <div class="card stat">
+    <div id="usersCount" class="stat-value">0</div>
+    <div class="stat-label">Total Users</div>
+  </div>
+
+  <div class="card stat">
+    <div id="pendingWithdrawals" class="stat-value">0</div>
+    <div class="stat-label">Pending Withdrawals</div>
+  </div>
+
+  <div class="card stat">
+    <div id="paidWithdrawals" class="stat-value">$0.00</div>
+    <div class="stat-label">Paid Withdrawals</div>
+  </div>
+
+</section>
+
+
+<!-- ADD TASK -->
+
+<section class="card">
+
+  <div class="section-title">
+    <h2>➕ Add New Task</h2>
+  </div>
+
+  <form id="taskForm">
+
+    <div class="form-grid">
+
+      <div class="field">
+        <label>Task Title</label>
+        <input
+          id="taskTitle"
+          type="text"
+          placeholder="Example: Follow our Telegram channel"
+          maxlength="200"
+          required
+        >
+      </div>
+
+      <div class="field">
+        <label>Reward</label>
+        <input
+          id="taskReward"
+          type="number"
+          step="0.000001"
+          min="0"
+          placeholder="1.00"
+          required
+        >
+      </div>
+
+      <div class="field">
+        <label>Reward Currency</label>
+        <select id="taskCurrency">
+          <option value="USD">USD</option>
+          <option value="HBC">HBC</option>
+          <option value="USDT">USDT</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Task URL</label>
+        <input
+          id="taskUrl"
+          type="url"
+          placeholder="https://t.me/example"
+        >
+      </div>
+
+      <div class="field full">
+        <label>Description / Instructions</label>
+        <textarea
+          id="taskDescription"
+          maxlength="5000"
+          placeholder="Tell users exactly what they need to do..."
+        ></textarea>
+      </div>
+
+    </div>
+
+    <button type="submit">
+      Create Task
+    </button>
+
+  </form>
+
+</section>
+
+
+<!-- TASKS -->
+
+<section class="card">
+
+  <div class="section-title">
+    <h2>📋 Tasks</h2>
+    <button class="secondary small" onclick="loadTasks()">
+      Refresh
+    </button>
+  </div>
+
+  <div id="tasksList" class="task-list">
+    <div class="empty">No tasks loaded.</div>
+  </div>
+
+</section>
+
+
+<!-- SUBMISSIONS -->
+
+<section class="card">
+
+  <div class="section-title">
+    <h2>📸 Task Submissions</h2>
+    <button class="secondary small" onclick="loadSubmissions()">
+      Refresh
+    </button>
+  </div>
+
+  <div id="submissionsList" class="submission-list">
+    <div class="empty">No submissions loaded.</div>
+  </div>
+
+</section>
+
 
 <!-- WITHDRAWALS -->
 
-<div class="card">
-  <h2>Withdrawals</h2>
-  <div id="rows">Enter admin key.</div>
+<section class="card">
+
+  <div class="section-title">
+    <h2>💰 Withdrawals</h2>
+    <button class="secondary small" onclick="loadWithdrawals()">
+      Refresh
+    </button>
+  </div>
+
+  <div id="withdrawalsList" class="withdrawal-list">
+    <div class="empty">No withdrawals loaded.</div>
+  </div>
+
+</section>
+
+  </main></div><!-- EDIT TASK MODAL --><div id="editModal" class="modal">  <div class="modal-box"><div class="modal-header">
+  <h3>Edit Task</h3>
+  <button class="close" onclick="closeEdit()">×</button>
 </div>
 
-<!-- TASK SUBMISSIONS -->
+<form id="editForm">
 
-<div class="card">
-  <h2>Task Submissions</h2>
-  <div id="submissions">Enter admin key.</div>
+  <input type="hidden" id="editId">
+
+  <div class="field">
+    <label>Task Title</label>
+    <input id="editTitle" maxlength="200" required>
+  </div>
+
+  <div class="field">
+    <label>Description</label>
+    <textarea id="editDescription" maxlength="5000"></textarea>
+  </div>
+
+  <div class="two grid">
+
+    <div class="field">
+      <label>Reward</label>
+      <input
+        id="editReward"
+        type="number"
+        step="0.000001"
+        min="0"
+        required
+      >
+    </div>
+
+    <div class="field">
+      <label>Currency</label>
+      <select id="editCurrency">
+        <option value="USD">USD</option>
+        <option value="HBC">HBC</option>
+        <option value="USDT">USDT</option>
+      </select>
+    </div>
+
+  </div>
+
+  <div class="field">
+    <label>Task URL</label>
+    <input id="editUrl" type="url">
+  </div>
+
+  <div class="actions">
+    <button type="submit">
+      Save Changes
+    </button>
+
+    <button
+      type="button"
+      class="secondary"
+      onclick="closeEdit()"
+    >
+      Cancel
+    </button>
+  </div>
+
+</form>
+
+  </div></div><!-- SCREENSHOT MODAL --><div id="proofModal" class="modal">  <div class="modal-box"><div class="modal-header">
+  <h3>Task Proof</h3>
+  <button class="close" onclick="closeProof()">×</button>
 </div>
 
-<script>
+<div id="proofContent"></div>
 
-async function api(u,o={}){
-  const r=await fetch(u,{
-    ...o,
-    headers:{
-      'Content-Type':'application/json',
-      'x-admin-key':key.value
-    }
-  });
+  </div></div><div id="toast" class="toast"></div><script>
 
-  const d=await r.json();
+  let adminKey = '';
+  let tasksCache = [];
+  let submissionsCache = [];
 
-  if(!r.ok || d.ok===false){
-    throw Error(d.error||'Failed');
+
+  /* =====================================================
+     HELPERS
+  ===================================================== */
+
+  const $ = id => document.getElementById(id);
+
+
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 
-  return d;
-}
+
+  function toast(text, error = false) {
+
+    const el = $('toast');
+
+    el.textContent = text;
+
+    el.style.background =
+      error ? '#521b1b' : '#123c22';
+
+    el.style.borderColor =
+      error ? '#853333' : '#286a40';
+
+    el.classList.add('show');
+
+    clearTimeout(window.toastTimer);
+
+    window.toastTimer =
+      setTimeout(() => {
+        el.classList.remove('show');
+      }, 2800);
+  }
 
 
-async function load(){
+  async function api(url, options = {}) {
 
-  try{
+    const response = await fetch(url, {
+      ...options,
 
-    /* ADMIN OVERVIEW */
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-key': adminKey,
+        ...(options.headers || {})
+      }
+    });
 
-    const s=await api('/api/admin/overview');
+    let data;
 
-    stats.innerHTML=`
-      <div class="card">
-        <b>${s.users}</b><br>Users
-      </div>
+    try {
+      data = await response.json();
+    } catch {
+      throw new Error('Server returned invalid response');
+    }
 
-      <div class="card">
-        <b>${s.pendingWithdrawals}</b><br>Pending withdrawals
-      </div>
+    if (!response.ok) {
+      throw new Error(
+        data.error || 'Request failed'
+      );
+    }
 
-      <div class="card">
-        <b>$${Number(s.paidWithdrawals).toFixed(2)}</b><br>Paid total
-      </div>
-    `;
-
-
-    /* WITHDRAWALS */
-
-    const d=await api('/api/admin/withdrawals');
-
-    rows.innerHTML=
-      '<table>'+
-      '<tr>'+
-      '<th>ID</th>'+
-      '<th>User</th>'+
-      '<th>Amount</th>'+
-      '<th>Address</th>'+
-      '<th>Status</th>'+
-      '<th>Action</th>'+
-      '</tr>'+
-
-      d.withdrawals.map(w=>`
-
-        <tr>
-
-          <td>${w.id}</td>
-
-          <td>
-            ${w.username||w.telegram_id}
-          </td>
-
-          <td>
-            $${Number(w.amount).toFixed(2)}
-          </td>
-
-          <td style="word-break:break-all">
-            ${w.payment_address}
-          </td>
-
-          <td>
-            ${w.status}
-          </td>
-
-          <td>
-            <button onclick="setStatus(${w.id},'paid')">
-              Paid
-            </button>
-
-            <button onclick="setStatus(${w.id},'rejected')">
-              Reject
-            </button>
-          </td>
-
-        </tr>
-
-      `).join('')+
-      '</table>';
+    return data;
+  }
 
 
-    /* TASK SUBMISSIONS */
+  /* =====================================================
+     LOGIN
+  ===================================================== */
 
-    const ts=await api('/api/admin/task-submissions');
+  async function login() {
 
-    if(!ts.submissions.length){
+    const key = $('adminKey').value.trim();
 
-      submissions.innerHTML='<p>No task submissions yet.</p>';
+    if (!key) {
+      $('message').textContent =
+        'Enter your admin key first.';
 
-    }else{
+      $('message').className =
+        'notice error';
 
-      submissions.innerHTML=
-        '<table>'+
-        '<tr>'+
-        '<th>ID</th>'+
-        '<th>User</th>'+
-        '<th>Task</th>'+
-        '<th>Reward</th>'+
-        '<th>Proof</th>'+
-        '<th>Status</th>'+
-        '<th>Action</th>'+
-        '</tr>'+
+      return;
+    }
 
-        ts.submissions.map(s=>`
+    adminKey = key;
 
-          <tr>
+    try {
 
-            <td>
-              ${s.id}
-            </td>
+      await loadOverview();
 
-            <td>
-              ${s.username || s.telegram_id || 'User'}
-            </td>
+      $('dashboard').classList.remove('hidden');
 
-            <td>
-              ${s.task_title}
-            </td>
+      $('message').textContent =
+        'Admin dashboard loaded successfully.';
 
-            <td>
-              $${Number(s.reward).toFixed(2)}
-            </td>
+      $('message').className =
+        'notice success-text';
 
-            <td>
+      await Promise.all([
+        loadTasks(),
+        loadSubmissions(),
+        loadWithdrawals()
+      ]);
 
-              ${
-                s.proof
-                ? `<a href="${s.proof}" target="_blank">
-                    <img class="proof" src="${s.proof}" alt="Task proof">
-                   </a>`
-                : 'No proof'
-              }
+      toast('Admin dashboard loaded');
 
-            </td>
+    } catch (error) {
 
-            <td>
-              <span class="status-${s.status}">
-                ${s.status}
+      $('dashboard').classList.add('hidden');
+
+      $('message').textContent =
+        error.message;
+
+      $('message').className =
+        'notice error';
+
+      toast(error.message, true);
+    }
+  }
+
+
+  /* =====================================================
+     OVERVIEW
+  ===================================================== */
+
+  async function loadOverview() {
+
+    const data =
+      await api('/api/admin/overview');
+
+    $('usersCount').textContent =
+      Number(data.users || 0).toLocaleString();
+
+    $('pendingWithdrawals').textContent =
+      Number(
+        data.pendingWithdrawals || 0
+      ).toLocaleString();
+
+    $('paidWithdrawals').textContent =
+      '$' +
+      Number(
+        data.paidWithdrawals || 0
+      ).toFixed(2);
+  }
+
+
+  /* =====================================================
+     ADD TASK
+  ===================================================== */
+
+  $('taskForm').addEventListener(
+    'submit',
+    async event => {
+
+      event.preventDefault();
+
+      const button =
+        event.submitter ||
+        event.target.querySelector('button[type="submit"]');
+
+      button.disabled = true;
+
+      try {
+
+        const payload = {
+          title: $('taskTitle').value.trim(),
+
+          description:
+            $('taskDescription').value.trim(),
+
+          reward:
+            Number($('taskReward').value),
+
+          reward_coin:
+            $('taskCurrency').value,
+
+          url:
+            $('taskUrl').value.trim(),
+
+          active: true
+        };
+
+        await api(
+          '/api/admin/tasks',
+          {
+            method: 'POST',
+            body: JSON.stringify(payload)
+          }
+        );
+
+        $('taskForm').reset();
+
+        toast('Task created successfully');
+
+        await loadTasks();
+
+      } catch (error) {
+
+        toast(error.message, true);
+
+      } finally {
+
+        button.disabled = false;
+      }
+    }
+  );
+
+
+  /* =====================================================
+     LOAD TASKS
+  ===================================================== */
+
+  async function loadTasks() {
+
+    try {
+
+      const data =
+        await api('/api/admin/tasks');
+
+      tasksCache =
+        data.tasks || [];
+
+      renderTasks();
+
+    } catch (error) {
+
+      $('tasksList').innerHTML =
+        `<div class="empty error">
+          ${escapeHtml(error.message)}
+        </div>`;
+    }
+  }
+
+
+  function renderTasks() {
+
+    const list = $('tasksList');
+
+    if (!tasksCache.length) {
+
+      list.innerHTML =
+        '<div class="empty">No tasks found.</div>';
+
+      return;
+    }
+
+    list.innerHTML =
+      tasksCache.map(task => {
+
+        const active =
+          Number(task.active) === 1;
+
+        return `
+          <div class="task-item">
+
+            <div class="item-top">
+
+              <div>
+                <div class="item-title">
+                  ${escapeHtml(task.title)}
+                </div>
+
+                <div class="item-description">
+                  ${escapeHtml(task.description)}
+                </div>
+              </div>
+
+              <div class="reward">
+                ${Number(task.reward).toFixed(6)}
+                ${escapeHtml(task.reward_coin || 'USD')}
+              </div>
+
+            </div>
+
+            <div class="meta">
+              ID: ${task.id}
+              · Submissions: ${Number(task.submissions || 0)}
+              · Pending: ${Number(task.pending_submissions || 0)}
+              <br>
+              URL:
+              ${escapeHtml(task.url || '#')}
+            </div>
+
+            <div style="margin-top:10px">
+              <span class="badge ${active ? 'active' : 'inactive'}">
+                ${active ? 'Active' : 'Inactive'}
               </span>
-            </td>
+            </div>
 
-            <td>
+            <div class="actions">
 
-              ${
-                s.status==='pending'
-                ? `
-                  <button class="approve"
-                    onclick="reviewSubmission(${s.id},'approved')">
-                    Approve
-                  </button>
+              <button
+                class="small"
+                onclick="openEdit(${task.id})"
+              >
+                Edit
+              </button>
 
-                  <button class="reject"
-                    onclick="reviewSubmission(${s.id},'rejected')">
-                    Reject
-                  </button>
-                `
-                : 'Reviewed'
-              }
+              <button
+                class="small ${active ? 'warning' : 'success'}"
+                onclick="toggleTask(${task.id})"
+              >
+                ${active ? 'Deactivate' : 'Activate'}
+              </button>
 
-            </td>
+              <button
+                class="small danger"
+                onclick="deleteTask(${task.id})"
+              >
+                Delete
+              </button>
 
-          </tr>
+            </div>
 
-        `).join('')+
-        '</table>';
+          </div>
+        `;
+
+      }).join('');
+  }
+
+
+  /* =====================================================
+     EDIT TASK
+  ===================================================== */
+
+  function openEdit(id) {
+
+    const task =
+      tasksCache.find(
+        item => Number(item.id) === Number(id)
+      );
+
+    if (!task) {
+      toast('Task not found', true);
+      return;
     }
 
-  }catch(e){
+    $('editId').value =
+      task.id;
 
-    rows.textContent=e.message;
-    submissions.textContent=e.message;
+    $('editTitle').value =
+      task.title || '';
 
-  }
-}
+    $('editDescription').value =
+      task.description || '';
 
+    $('editReward').value =
+      task.reward || '';
 
-/* WITHDRAWAL REVIEW */
+    $('editCurrency').value =
+      task.reward_coin || 'USD';
 
-async function setStatus(id,status){
-
-  try{
-
-    await api(
-      '/api/admin/withdrawals/'+id+'/status',
-      {
-        method:'POST',
-        body:JSON.stringify({status})
-      }
-    );
-
-    await load();
-
-  }catch(e){
-
-    alert(e.message);
-
-  }
-}
-
-
-/* TASK REVIEW */
-
-async function reviewSubmission(id,status){
-
-  const action=status==='approved'
-    ? 'approve this task and credit the reward?'
-    : 'reject this task submission?';
-
-  if(!confirm('Are you sure you want to '+action)){
-    return;
-  }
-
-  try{
-
-    await api(
-      '/api/admin/task-submissions/'+id+'/status',
-      {
-        method:'POST',
-        body:JSON.stringify({status})
-      }
-    );
-
-    await load();
-
-  }catch(e){
-
-    alert(e.message);
-
-  }
-}
-
-</script>
-
-</body>
-</html>
+    $
