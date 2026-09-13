@@ -1,0 +1,26 @@
+HillsByte media + proof management fix
+
+Files:
+- index.js -> corrected backend
+- main.jsx -> corrected admin proof UI
+
+What this fixes:
+1. New task logos/images are stored permanently in Supabase Storage.
+2. New proof screenshots are stored permanently in a private Supabase Storage bucket.
+3. Admin proof screenshots are returned as time-limited signed URLs so they can be viewed.
+4. Full-size screenshot viewer is included.
+5. Admin Proofs has Select All Reviewed, sorting, per-proof selection, and Delete Selected.
+6. Only reviewed (approved/rejected) proofs can be deleted.
+7. Existing SQLite/database persistence logic is kept.
+
+Supabase environment variables:
+SUPABASE_URL
+SUPABASE_SERVICE_ROLE_KEY
+SUPABASE_BUCKET (existing database backup bucket; default hillsbyte-backups)
+SUPABASE_MEDIA_BUCKET (default hillsbyte-media)
+SUPABASE_PROOF_BUCKET (default hillsbyte-proofs)
+
+Important:
+- Existing /uploads/... images that are already missing from Render cannot be recovered by code alone.
+- Re-upload old task logos/images once; new uploads will persist in Supabase.
+- Do not remove the existing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.
