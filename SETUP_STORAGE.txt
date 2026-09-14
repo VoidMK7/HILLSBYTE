@@ -1,26 +1,33 @@
-HillsByte media + proof management fix
+HillsByte stability/media/ad tracking fix
 
-Files:
-- index.js -> corrected backend
-- main.jsx -> corrected admin proof UI
+Replace only:
+- index.js with index_fixed.js (rename to index.js)
+- main.jsx with main_fixed.jsx (rename to main.jsx)
 
-What this fixes:
-1. New task logos/images are stored permanently in Supabase Storage.
-2. New proof screenshots are stored permanently in a private Supabase Storage bucket.
-3. Admin proof screenshots are returned as time-limited signed URLs so they can be viewed.
-4. Full-size screenshot viewer is included.
-5. Admin Proofs has Select All Reviewed, sorting, per-proof selection, and Delete Selected.
-6. Only reviewed (approved/rejected) proofs can be deleted.
-7. Existing SQLite/database persistence logic is kept.
+Do NOT delete package.json, render.yaml, styles.css, vite.config.js, your database, or other existing project files.
 
 Supabase environment variables:
 SUPABASE_URL
 SUPABASE_SERVICE_ROLE_KEY
-SUPABASE_BUCKET (existing database backup bucket; default hillsbyte-backups)
-SUPABASE_MEDIA_BUCKET (default hillsbyte-media)
-SUPABASE_PROOF_BUCKET (default hillsbyte-proofs)
+SUPABASE_BUCKET (existing backup bucket)
+SUPABASE_MEDIA_BUCKET=hillsbyte-media
+SUPABASE_PROOF_BUCKET=hillsbyte-proofs
+
+The media bucket should be PUBLIC. The proof bucket should remain PRIVATE.
+
+This version:
+- permanently stores NEW task logos/images in Supabase Storage
+- permanently stores NEW proof screenshots in a private Supabase bucket
+- returns signed proof URLs to the admin so screenshots stay inside the app
+- adds an in-app full-screen proof viewer
+- adds Select All Reviewed, individual selection, sorting, Delete Reviewed
+- prevents deletion of pending proofs
+- fixes the literal \n rendering bug in main.jsx
+- adds server-side ad start/completion tracking, cooldown and daily limits
+- adds a redesigned Ads page with tracked sessions and reward display
 
 Important:
-- Existing /uploads/... images that are already missing from Render cannot be recovered by code alone.
-- Re-upload old task logos/images once; new uploads will persist in Supabase.
-- Do not remove the existing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.
+Existing /uploads/... files that are already missing from Render cannot be recovered automatically. Re-upload old task logos/images once. New uploads are durable.
+
+Ad provider note:
+The app tracks and rewards completed ad sessions. For a real Monetag/Adsgram ad to open, the provider's official SDK/script must already be loaded. Monetag unit IDs are supported through show_<unit_id>; Adsgram is supported through Adsgram.init({blockId: unit_id}).
