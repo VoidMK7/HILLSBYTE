@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#061b12">
+<title>HillsByte</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+ --bg:#03120d;--bg2:#061b12;--panel:#071f16;--panel2:#09281c;--line:#123e2d;
+ --text:#f2fff8;--muted:#89a79a;--brand:#16df83;--brand2:#0bbf6b;
+ --green:#16df83;--yellow:#f4c95d;--red:#ff6475;--cyan:#56d9ff;
+ --shadow:0 18px 50px rgba(0,0,0,.38);--radius:18px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--text);font:14px Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+body{min-height:100vh}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer;border:0;-webkit-tap-highlight-color:transparent}
+button:focus{outline:none}
+button:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.app{max-width:520px;margin:auto;min-height:100vh;padding-bottom:82px;background:linear-gradient(180deg,#03150e 0,#03120d 55%,#02100b)}
+.top{position:sticky;top:0;z-index:20;height:72px;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;background:rgba(3,18,13,.94);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px}.logo{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,#1bea8c,#079e59);display:grid;place-items:center;font-weight:900;box-shadow:0 8px 25px rgba(22,223,131,.22)}
+.brand b{font-size:16px}.brand span{display:block;color:var(--muted);font-size:10px;margin-top:2px}
+.iconbtn{width:40px;height:40px;border-radius:13px;background:#09251a;color:#fff;border:1px solid var(--line)}
+.page{padding:16px}
+.view{display:none}.view.active{display:block}
+.hero{padding:20px;border:1px solid var(--line);border-radius:24px;background:radial-gradient(circle at 100% 0,rgba(22,223,131,.15),transparent 42%),linear-gradient(145deg,#0a2b1d,#061b12);box-shadow:var(--shadow)}
+.hero small,.muted{color:var(--muted)}
+.hero h1{font-size:27px;margin:6px 0 8px}.balance{font-size:31px;font-weight:850;margin:4px 0 16px}
+.row{display:flex;gap:9px;align-items:center}.row>*{flex:1}
+.btn{padding:11px 14px;border-radius:13px;background:#0b2a1d;color:#fff;border:1px solid var(--line);font-weight:750;transition:transform .12s,background .12s}
+.btn:active{transform:scale(.98)}.btn.primary{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#02140c;border:0}
+.btn.danger{color:#ff9aa5;border-color:#54232c}.btn.small{padding:8px 10px;font-size:12px}
+.section{margin-top:18px}.sectionhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.sectionhead h2{font-size:17px;margin:0}
+.link{color:var(--brand);font-weight:700;cursor:pointer}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.card,.stat{background:linear-gradient(145deg,#082519,#061b12);border:1px solid var(--line);border-radius:var(--radius);padding:14px}
+.stat span{font-size:11px;color:var(--muted)}.stat b{display:block;font-size:20px;margin-top:5px}
+.green{color:var(--green)}.yellow{color:var(--yellow)}.red{color:var(--red)}.cyan{color:var(--cyan)}
+.pill{display:inline-flex;padding:5px 8px;border-radius:9px;background:#0a3021;color:#9be9c3;font-size:10px}
+.task{display:flex;align-items:center;gap:12px}.taskico{width:46px;height:46px;flex:none;border-radius:14px;background:#0a3322;display:grid;place-items:center;font-size:20px}
+.taskbody{flex:1;min-width:0}.taskbody h3{margin:0 0 4px;font-size:14px}.taskbody p{margin:0 0 6px;color:var(--muted);font-size:11px}
+.xp{height:8px;background:#0b3020;border-radius:99px;overflow:hidden}.xp i{display:block;height:100%;background:linear-gradient(90deg,#0bc56c,#28ee91);border-radius:99px}
+.levelrow{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin-top:8px}
+.bottom{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(520px,100%);height:76px;z-index:30;display:grid;grid-template-columns:repeat(5,1fr);background:rgba(3,18,13,.97);border-top:1px solid var(--line);backdrop-filter:blur(18px)}
+.nav{background:none;color:#708d80;font-size:10px}.nav b{display:block;font-size:19px;margin-bottom:4px}.nav.active{color:var(--brand)}
+.notice{padding:12px;border-radius:14px;background:#09291c;border:1px solid var(--line);font-size:12px}
+.form{display:grid;gap:10px}.field{width:100%;padding:12px;border-radius:12px;background:#04170f;color:#fff;border:1px solid var(--line);outline:0}.field:focus{border-color:var(--brand)}
+textarea.field{resize:vertical}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:15px}.table{width:100%;border-collapse:collapse;min-width:560px}.table th,.table td{text-align:left;padding:11px;border-bottom:1px solid var(--line);font-size:11px}.table th{color:var(--muted);background:#082318}
+.chart{height:150px;display:flex;align-items:end;gap:7px;padding:14px 3px 0}.bar{flex:1;min-height:10px;background:linear-gradient(180deg,#20e98b,#087448);border-radius:7px 7px 2px 2px}
+.rank{display:flex;align-items:center;gap:10px}.ranknum{width:25px;text-align:center;font-weight:850;color:var(--muted)}.avatar{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#17df83,#087e4a);display:grid;place-items:center;font-weight:850}.right{margin-left:auto;text-align:right}
+.admin-tabs{display:flex;gap:8px;overflow:auto;padding:2px 0 5px}.admin-tabs .btn{white-space:nowrap}.admin-tabs .active{background:var(--brand);color:#02140c;border-color:transparent}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.68);z-index:50;display:none;align-items:end}.modal.open{display:flex}.sheet{width:min(520px,100%);max-height:91vh;overflow:auto;background:#061b12;border:1px solid var(--line);border-radius:24px 24px 0 0;padding:18px;box-shadow:0 -20px 70px rgba(0,0,0,.5)}
+.close{float:right;width:36px;height:36px;border-radius:11px;background:#0b2a1d;color:#fff;border:1px solid var(--line)}
+.toast{position:fixed;left:50%;bottom:91px;transform:translateX(-50%) translateY(15px);z-index:80;background:#08291c;border:1px solid #176543;color:#eafff3;padding:12px 16px;border-radius:15px;opacity:0;pointer-events:none;transition:.2s;max-width:88%;text-align:center}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.empty{text-align:center;padding:30px 12px;color:var(--muted)}
+.switch{width:45px;height:25px;border-radius:20px;background:#123526;padding:3px}.switch i{display:block;width:19px;height:19px;background:#fff;border-radius:50%;transition:.15s}.switch.on{background:var(--brand)}.switch.on i{margin-left:20px}
+.kpi{font-size:25px;font-weight:850}.subnav{display:flex;gap:8px;overflow:auto;margin-bottom:12px}.subnav .btn{white-space:nowrap}
+.filelist{display:grid;gap:8px}.fileitem{display:flex;align-items:center;justify-content:space-between;padding:10px;border:1px solid var(--line);border-radius:12px;background:#061a11}
+@media(min-width:600px){body{padding:20px}.app{border:1px solid var(--line);border-radius:28px;overflow:hidden;box-shadow:0 30px 90px rgba(0,0,0,.5)}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+  <div class="brand"><div class="logo">HB</div><div><b>HillsByte</b><span>Earn • Complete • Grow</span></div></div>
+  <button class="iconbtn" onclick="openNotifications()">🔔</button>
+</header>
+
+<main>
+<section id="home" class="view active page">
+  <div id="homeContent"></div>
+</section>
+
+<section id="tasks" class="view page">
+  <div class="sectionhead"><h2>Task Market</h2><button class="btn" onclick="openPostTask()">+ Post task</button></div>
+  <div class="subnav" id="taskFilters">
+    <button class="btn active" data-filter="all" onclick="filterTasks('all',this)">All</button>
+    <button class="btn" data-filter="social" onclick="filterTasks('social',this)">Social</button>
+    <button class="btn" data-filter="apps" onclick="filterTasks('apps',this)">Apps</button>
+    <button class="btn" data-filter="surveys" onclick="filterTasks('surveys',this)">Surveys</button>
+    <button class="btn" data-filter="games" onclick="filterTasks('games',this)">Games</button>
+  </div>
+  <div id="taskList"></div>
+</section>
+
+<section id="community" class="view page">
+  <div class="sectionhead"><div><h2 style="margin:0">Community</h2><div class="muted">Messages remain visible for 48 hours.</div></div></div>
+  <div class="subnav">
+    <button class="btn primary">Chat</button>
+    <button class="btn" onclick="show('leaderboard',this)">Leaderboard</button>
+    <button class="btn" onclick="show('profile',this)">Members</button>
+  </div>
+  <div class="card" style="margin-bottom:12px"><b>Telegram Community</b><p class="muted">Join the official HillsByte Telegram group.</p><button class="btn primary" onclick="joinTelegram()">Join</button></div>
+  <div id="communityList"></div>
+  <div class="card form" style="margin-top:12px"><textarea id="communityInput" class="field" rows="3" maxlength="1000" placeholder="Write a message..."></textarea><button class="btn primary" onclick="sendCommunity()">Send</button></div>
+</section>
+
+<section id="leaderboard" class="view page">
+  <div class="hero"><small>Live leaderboard</small><h1>Leaderboard</h1><p class="muted">Choose a category and period.</p></div>
+  <div class="subnav" style="margin-top:12px">
+    <button class="btn primary" data-lb-kind="earners" onclick="loadLeaderboard('earners',currentLbPeriod,this)">Top Earners</button>
+    <button class="btn" data-lb-kind="tasks" onclick="loadLeaderboard('tasks',currentLbPeriod,this)">Most Tasks</button>
+    <button class="btn" data-lb-kind="referrals" onclick="loadLeaderboard('referrals',currentLbPeriod,this)">Referrals</button>
+    <button class="btn" data-lb-kind="streak" onclick="loadLeaderboard('streak',currentLbPeriod,this)">Streak</button>
+  </div>
+  <div class="subnav">
+    <button class="btn active" onclick="loadLeaderboard(currentLbKind,'today',this)">Today</button>
+    <button class="btn" onclick="loadLeaderboard(currentLbKind,'week',this)">This Week</button>
+    <button class="btn" onclick="loadLeaderboard(currentLbKind,'month',this)">This Month</button>
+    <button class="btn" onclick="loadLeaderboard(currentLbKind,'all',this)">All Time</button>
+  </div>
+  <div id="leaderboardList"></div>
+</section>
+
+<section id="activity" class="view page"><div id="activityContent"></div></section>
+<section id="profile" class="view page"><div id="profileContent"></div></section>
+
+<section id="admin" class="view page">
+  <div id="adminContent"></div>
+</section>
+
+<section id="notifications" class="view page"><div id="notificationContent"></div></section>
+</main>
+
+<nav class="bottom">
+ <button class="nav active" onclick="show('home',this)"><b>⌂</b>Earn</button>
+ <button class="nav" onclick="show('tasks',this)"><b>▣</b>Tasks</button>
+ <button class="nav" onclick="show('community',this)"><b>♟</b>Community</button>
+ <button class="nav" onclick="show('profile',this)"><b>♙</b>Profile</button>
+ <button class="nav" onclick="show('admin',this)"><b>☰</b>More</button>
+</nav>
+</div>
+
+<div id="modal" class="modal" onclick="if(event.target===this)closeModal()"><div class="sheet"><button class="close" onclick="closeModal()">✕</button><div id="modalbody"></div></div></div>
+<div id="toast" class="toast"></div>
+
+<script>
+const API='https://dtllanljrvftccixuxrx.supabase.co/functions/v1/hillsbyte-api';
+const tg=window.Telegram?.WebApp;
+let state={boot:null,user:null,tasks:[],notifications:[],methods:[],posts:[],transactions:[],isAdmin:false};
+let currentLbKind='earners',currentLbPeriod='week',taskFilter='all';
+
+function $(s){return document.querySelector(s)}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function money(v){return '$'+Number(v||0).toFixed(2)}
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(window._toast);window._toast=setTimeout(()=>t.classList.remove('show'),2600)}
+function initTelegram(){try{tg?.ready();tg?.expand();}catch{}}
+async function api(action,data={}){
+ const body={action,...data,initData:tg?.initData||''};
+ const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
+ let d={};try{d=await r.json()}catch{}
+ if(!r.ok||d.error) throw new Error(d.error||'Request failed');
+ return d;
+}
+function show(id,el){
+ document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+ const v=$('#'+id);if(v)v.classList.add('active');
+ document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));
+ if(el&&el.classList.contains('nav'))el.classList.add('active');
+ window.scrollTo({top:0,behavior:'smooth'});
+ if(id==='home')renderHome(); if(id==='tasks')renderTasks(); if(id==='community')renderCommunity();
+ if(id==='leaderboard')loadLeaderboard(currentLbKind,currentLbPeriod);
+ if(id==='activity')renderActivity(); if(id==='profile')renderProfile(); if(id==='admin')renderAdmin('overview'); if(id==='notifications')renderNotifications();
+}
+function closeModal(){$('#modal').classList.remove('open')}
+function modal(title,body){$('#modalbody').innerHTML='<h2>'+esc(title)+'</h2>'+body;$('#modal').classList.add('open')}
+async function boot(){
+ initTelegram();
+ try{
+   state.boot=await api('bootstrap');state.user=state.boot.user;state.tasks=state.boot.tasks||[];state.notifications=state.boot.notifications||[];state.methods=state.boot.withdrawalMethods||[];state.posts=state.boot.posts||[];state.transactions=state.boot.transactions||[];
+   state.isAdmin=['admin'].includes(state.user?.role);
+   renderHome();renderTasks();
+ }catch(e){
+   $('#homeContent').innerHTML='<div class="hero"><small>HillsByte</small><h1>Session unavailable</h1><p class="muted">'+esc(e.message)+'</p><button class="btn primary" onclick="boot()">Retry</button></div>';
+   toast(e.message);
+ }
+}
+function renderHome(){
+ const u=state.user||{}, life=u.lifetime_earnings||0;
+ $('#homeContent').innerHTML=`
+ <div class="hero">
+   <small>Welcome back</small><h1>${esc(u.display_name||'HillsByte user')}</h1>
+   <div class="balance">${money(u.balance)}</div>
+   <div class="row"><button class="btn primary" onclick="openWithdraw()">Withdraw</button><button class="btn" onclick="openDepositInfo()">Deposit</button></div>
+ </div>
+ <div class="section grid">
+  <div class="stat"><span>Available</span><b>${money(u.balance)}</b></div>
+  <div class="stat"><span>Pending</span><b>${money(u.pending_balance)}</b></div>
+  <div class="stat"><span>Lifetime earnings</span><b>${money(life)}</b></div>
+  <div class="stat"><span>HillsCoin</span><b>${Number(u.hillscoin||0)} HBC</b></div>
+ </div>
+ <div class="section card">
+  <div class="sectionhead"><h2>Daily check-in</h2><button class="btn primary small" onclick="checkin()">Check in</button></div>
+  <div class="muted">Current streak: ${Number(u.current_streak||0)} day${Number(u.current_streak||0)==1?'':'s'}</div>
+ </div>
+ <div class="section"><div class="sectionhead"><h2>Quick actions</h2></div>
+  <div class="grid">
+   <button class="card btn" onclick="show('tasks',this)">▣<br>Tasks</button>
+   <button class="card btn" onclick="show('community',this)">♟<br>Community</button>
+   <button class="card btn" onclick="show('leaderboard',this)">♛<br>Leaderboard</button>
+   <button class="card btn" onclick="show('activity',this)">◉<br>Activity</button>
+  </div>
+ </div>
+ <div class="section"><div class="sectionhead"><h2>Earn</h2><span class="link" onclick="show('tasks',this)">View all →</span></div><div id="homeTasks"></div></div>`;
+ const active=state.tasks.filter(t=>t.active).slice(0,3);
+ $('#homeTasks').innerHTML=active.length?active.map(taskCard).join(''):'<div class="card empty">No approved tasks are available right now.</div>';
+}
+function taskCard(t){
+ return `<div class="card task" style="margin-bottom:9px"><div class="taskico">▣</div><div class="taskbody"><h3>${esc(t.title||'Task')}</h3><p>${esc(t.short_description||t.description||'Complete the task and submit proof.')}</p><span class="pill">+ ${money(t.reward)} · ${Number(t.quantity_remaining??t.quantity??0)} slots</span></div><button class="btn primary small" onclick="startTask('${esc(String(t.id))}')">Start</button></div>`;
+}
+function renderTasks(){
+ const list=state.tasks.filter(t=>taskFilter==='all'||String(t.category||'').toLowerCase()===taskFilter);
+ $('#taskList').innerHTML=list.length?list.map(taskCard).join(''):'<div class="card empty">No tasks in this category.</div>';
+}
+function filterTasks(f,el){taskFilter=f;document.querySelectorAll('#taskFilters .btn').forEach(x=>x.classList.remove('active'));el.classList.add('active');renderTasks()}
+async function startTask(id){
+ try{
+  const d=await api('start_task',{task_id:id});
+  const attempt=d.attempt||d;
+  modal('Sponsored task',`<div class="card"><h3>Watch the task advertisement</h3><p class="muted">The task unlocks after the ad session is completed.</p><div class="xp"><i id="adbar" style="width:0"></i></div><p id="adt" class="muted">Starting…</p><button id="adbtn" class="btn primary" style="width:100%" onclick="watchAd('${esc(String(attempt.id||''))}')">Start ad</button></div>`);
+ }catch(e){toast(e.message)}
+}
+async function watchAd(attemptId){
+ try{
+  const s=await api('start_ad',{provider:'internal',zone_id:'task_gate'});let p=0;
+  const b=$('#adbar'),t=$('#adt'),btn=$('#adbtn');btn.disabled=true;btn.textContent='Watching…';
+  const timer=setInterval(async()=>{p+=20;b.style.width=p+'%';t.textContent='Ad progress: '+p+'%';if(p>=100){clearInterval(timer);try{await api('complete_ad',{session_id:s.session?.id||s.id,provider:'internal',zone_id:'task_gate'});btn.disabled=false;btn.textContent='Submit proof';btn.onclick=()=>openProof(attemptId)}catch(e){btn.disabled=false;btn.textContent='Retry';toast(e.message)}}},500);
+ }catch(e){toast(e.message)}
+}
+function openProof(attemptId){
+ modal('Submit proof',`<div class="form"><p class="muted">Upload 2 or 3 screenshots. Maximum 3 files.</p><input id="proofFiles" class="field" type="file" accept="image/*" multiple><textarea id="proofNote" class="field" rows="3" maxlength="1000" placeholder="Optional note"></textarea><button class="btn primary" onclick="submitProof('${esc(attemptId)}')">Submit proof</button></div>`);
+ $('#proofFiles').addEventListener('change',e=>{if(e.target.files.length>3){e.target.value='';toast('Maximum 3 screenshots.')}})
+}
+async function submitProof(attemptId){
+ const files=[...($('#proofFiles').files||[])];if(files.length<2||files.length>3)return toast('Please select 2 or 3 screenshots.');
+ try{
+  const paths=[];
+  for(const f of files){
+   const path=`${state.user.id}/${crypto.randomUUID()}_${f.name.replace(/[^a-zA-Z0-9._-]/g,'_')}`;
+   const up=await api('create_upload_url',{bucket:'proofs',path});const rr=await fetch(up.signedUrl,{method:'PUT',headers:{'content-type':f.type||'application/octet-stream','x-upsert':'false'},body:f});if(!rr.ok)throw new Error('Screenshot upload failed.');paths.push(path);
+  }
+  await api('submit_proof',{attempt_id:attemptId,proof_paths:paths,note:$('#proofNote').value});
+  closeModal();toast('Proof submitted for review.');
+ }catch(e){toast(e.message)}
+}
+function renderCommunity(){
+ const posts=state.posts||[];$('#communityList').innerHTML=posts.length?posts.map(p=>`<div class="card" style="margin-bottom:9px"><div class="profile"><div class="avatar">${esc((p.users?.display_username||'U')[0].toUpperCase())}</div><div><b>${esc(p.users?.display_username||'User')}</b><div class="muted">${new Date(p.created_at).toLocaleString()}</div></div></div><p>${esc(p.body)}</p></div>`).join(''):'<div class="card empty">No community messages from the last 48 hours.</div>';
+}
+async function sendCommunity(){
+ const el=$('#communityInput'),body=el.value.trim();if(!body)return toast('Write a message first.');
+ try{const d=await api('community_post',{body});if(d.post)state.posts.push(d.post);el.value='';renderCommunity();toast('Message sent.');}catch(e){toast(e.message)}
+}
+function joinTelegram(){tg?.openTelegramLink?.('https://t.me/CPAbyte');}
+function renderActivity(){
+ const tx=state.transactions||[];$('#activityContent').innerHTML=`<div class="hero"><small>Account activity</small><h1>Activity</h1><p class="muted">Your real HillsByte transaction history.</p></div><div class="section card"><div class="sectionhead"><h2>Last 7 days</h2></div><div class="chart">${[0,1,2,3,4,5,6].map((_,i)=>`<i class="bar" style="height:${20+((tx[i]?.amount||0)%70)}%"></i>`).join('')}</div></div><div class="section card"><div class="sectionhead"><h2>Recent transactions</h2></div>${tx.length?tx.slice(0,30).map(x=>`<div class="row" style="padding:10px 0;border-bottom:1px solid var(--line)"><span>${esc(x.description||x.type||'Transaction')}</span><b class="right ${Number(x.amount)>=0?'green':'red'}">${Number(x.amount)>=0?'+':''}${money(x.amount)}</b></div>`).join(''):'<div class="empty">No transactions yet.</div>'}</div>`;
+}
+function renderProfile(){
+ const u=state.user||{};$('#profileContent').innerHTML=`<div class="card profile"><div class="avatar">${esc((u.display_name||'H')[0].toUpperCase())}</div><div><h2 style="margin:0">${esc(u.display_name||'HillsByte user')}</h2><span class="muted">@${esc(u.username||'user')}</span></div></div><div class="section card form"><label>Display name<input id="pname" class="field" value="${esc(u.display_name||'')}"></label><label>Username<input id="puser" class="field" value="${esc(u.username||'')}"></label><button class="btn primary" onclick="saveProfile()">Save profile</button></div><div class="section grid"><div class="stat"><span>Tasks</span><b>${Number(u.tasks_completed||0)}</b></div><div class="stat"><span>Referrals</span><b>${Number(u.referrals_count||0)}</b></div><div class="stat"><span>XP</span><b>${Number(u.xp||0)}</b></div><div class="stat"><span>Level</span><b>${Number(u.level||1)}</b></div></div>`;
+}
+async function saveProfile(){try{const d=await api('profile_update',{display_name:$('#pname').value,username:$('#puser').value});state.user=d.user;toast('Profile saved.');renderProfile();}catch(e){toast(e.message)}}
+async function checkin(){try{const d=await api('checkin');state.user={...state.user,...(d.user||d)};toast('Daily check-in completed.');renderHome()}catch(e){toast(e.message)}}
+function openDepositInfo(){modal('Deposit',`<div class="notice">Deposits are handled according to the configured HillsByte payment flow. No fake wallet address is shown here.</div><p class="muted">If deposits are enabled for your account, the available instructions will be displayed by the backend.</p>`)}
+function openWithdraw(){
+ const opts=state.methods.length?state.methods.map(m=>`<option value="${esc(m.code)}">${esc(m.name)} — min ${money(m.minimum_amount)} · fee ${m.fee_type==='percent'?Number(m.fee_value)+'%':money(m.fee_value)}</option>`).join(''):'<option>No withdrawal methods enabled</option>';
+ modal('Withdraw funds',`<div class="form"><div class="notice">Available: <b>${money(state.user?.balance)}</b></div><select id="wmethod" class="field">${opts}</select><input id="wamount" class="field" type="number" min="0" step="0.01" placeholder="Amount USD"><div id="wdetails"></div><button class="btn primary" onclick="requestWithdrawal()">Request withdrawal</button></div>`);
+ renderWithdrawalDetails();
+ $('#wmethod').onchange=renderWithdrawalDetails;
+}
+function renderWithdrawalDetails(){
+ const code=$('#wmethod')?.value||'';const bank=code==='BANK';$('#wdetails').innerHTML=bank?`<div class="form"><input id="bankName" class="field" placeholder="Account name"><input id="bankBank" class="field" placeholder="Bank name"><input id="bankNumber" class="field" placeholder="Account number"></div>`:`<input id="wallet" class="field" placeholder="Wallet address">`;
+}
+async function requestWithdrawal(){
+ try{
+  const code=$('#wmethod').value,amount=Number($('#wamount').value||0);let details={};
+  if(code==='BANK')details={account_name:$('#bankName').value,bank_name:$('#bankBank').value,account_number:$('#bankNumber').value};
+  else details={wallet_address:$('#wallet').value};
+  await api('create_withdrawal',{method:code,amount_usd:amount,details});closeModal();toast('Withdrawal request submitted.');await boot();
+ }catch(e){toast(e.message)}
+}
+async function openNotifications(){show('notifications');renderNotifications()}
+function renderNotifications(){
+ const ns=state.notifications||[];$('#notificationContent').innerHTML=`<div class="sectionhead"><div><h2>Notifications</h2><div class="muted">Updates about your account.</div></div><button class="btn small" onclick="markAllRead()">Mark all read</button></div><div class="subnav"><button class="btn active" onclick="filterNotifications('all',this)">All</button><button class="btn" onclick="filterNotifications('task',this)">Tasks</button><button class="btn" onclick="filterNotifications('reward',this)">Rewards</button><button class="btn" onclick="filterNotifications('system',this)">System</button></div><div id="notifList"></div>`;filterNotifications('all',$('#notificationContent .subnav .btn'));
+}
+function filterNotifications(type,el){document.querySelectorAll('#notificationContent .subnav .btn').forEach(x=>x.classList.remove('active'));el?.classList.add('active');const ns=(state.notifications||[]).filter(n=>type==='all'||String(n.type||'system').toLowerCase().includes(type));$('#notifList').innerHTML=ns.length?ns.map(n=>`<button class="card" style="display:block;width:100%;text-align:left;margin-bottom:9px;color:#fff" onclick="markRead('${esc(String(n.id))}')"><b>${esc(n.title||'HillsByte notification')}</b><p class="muted">${esc(n.body||n.message||'')}</p><small class="muted">${n.created_at?new Date(n.created_at).toLocaleString():''}${n.read_at?'':' · Unread'}</small></button>`).join(''):'<div class="card empty">No notifications in this category.</div>'}
+async function markRead(id){try{await api('mark_notification_read',{notification_id:id});const n=state.notifications.find(x=>String(x.id)===id);if(n)n.read_at=new Date().toISOString();renderNotifications()}catch(e){toast(e.message)}}
+async function markAllRead(){try{await api('mark_all_notifications_read');state.notifications.forEach(n=>n.read_at=new Date().toISOString());renderNotifications();toast('All notifications marked read.')}catch(e){toast(e.message)}}
+async function loadLeaderboard(kind='earners',period='week',el){
+ currentLbKind=kind;currentLbPeriod=period;try{const d=await api('leaderboard',{kind,period});const rows=d.leaderboard||[];$('#leaderboardList').innerHTML=rows.length?rows.map((r,i)=>`<div class="card rank" style="margin-bottom:8px"><span class="ranknum">${i+1}</span><div class="avatar">${esc((r.display_name||'U')[0].toUpperCase())}</div><div><b>${esc(r.display_name||'User')}</b><div class="muted">@${esc(r.username||'user')}</div></div><div class="right"><b>${Number(r.score||0).toLocaleString()}</b></div></div>`).join(''):'<div class="card empty">No leaderboard data for this period.</div>';if(el){const group=el.parentElement;group.querySelectorAll('.btn').forEach(x=>x.classList.remove('active'));el.classList.add('active')}}catch(e){$('#leaderboardList').innerHTML='<div class="card empty">'+esc(e.message)+'</div>'}}
+function renderAdmin(section='overview'){
+ if(!state.isAdmin){$('#adminContent').innerHTML='<div class="hero"><small>Restricted</small><h1>Admin panel</h1><p class="muted">Your account does not have administrator access.</p></div>';return}
+ $('#adminContent').innerHTML=`<div class="hero"><small>Administrator Console</small><h1>HillsByte Control Center</h1><p class="muted">Live management tools. No sample balances or fake records.</p></div><div class="admin-tabs">${[['overview','Overview'],['dashboard','Dashboard'],['tasks','Tasks'],['proofs','Proofs'],['withdrawals','Withdrawals'],['users','Users'],['reviewers','Reviewers'],['channels','Channels'],['events','Events'],['settings','Settings']].map(x=>`<button class="btn ${section===x[0]?'active':''}" onclick="renderAdmin('${x[0]}')">${x[1]}</button>`).join('')}</div><div id="adminPanel"></div>`;
+ loadAdminSection(section);
+}
+async function loadAdminSection(section){
+ const p=$('#adminPanel');p.innerHTML='<div class="card empty">Loading live data…</div>';
+ try{
+  if(section==='overview'){const d=await api('admin_overview');p.innerHTML=`<div class="grid"><div class="stat"><span>Users</span><b>${d.users}</b></div><div class="stat"><span>Tasks</span><b>${d.tasks}</b></div><div class="stat"><span>Proofs under review</span><b>${d.pendingProofs}</b></div><div class="stat"><span>Pending withdrawals</span><b>${money(d.pendingWithdrawals)}</b></div><div class="stat"><span>Events</span><b>${d.events}</b></div><div class="stat"><span>Pending deposits</span><b>${d.pendingDeposits}</b></div></div><div class="section card"><h3>Overview board</h3><p class="muted">This board summarizes live platform workload. Use the dedicated panels below for actions.</p><div class="row"><button class="btn" onclick="renderAdmin('proofs')">Review proofs</button><button class="btn" onclick="renderAdmin('withdrawals')">Withdrawals</button></div></div>`}
+  else if(section==='dashboard'){p.innerHTML=`<div class="card"><h3>Admin dashboard</h3><p class="muted">Operational shortcuts.</p><div class="grid"><button class="btn" onclick="renderAdmin('tasks')">Task management</button><button class="btn" onclick="renderAdmin('proofs')">Proof review</button><button class="btn" onclick="renderAdmin('withdrawals')">Withdrawal requests</button><button class="btn" onclick="renderAdmin('users')">User management</button></div></div>`}
+  else if(section==='tasks'){p.innerHTML=`<div class="card form"><h3>Create / edit task</h3><input id="atTitle" class="field" placeholder="Task title"><textarea id="atDesc" class="field" rows="4" placeholder="Task instructions and proof requirements"></textarea><div class="grid"><input id="atReward" class="field" type="number" step=".01" placeholder="Reward"><input id="atQty" class="field" type="number" placeholder="Quantity"></div><input id="atCategory" class="field" placeholder="Category (social/apps/surveys/games)"><button class="btn primary" onclick="saveAdminTask()">Save task</button></div><div class="section">${state.tasks.length?state.tasks.map(t=>`<div class="card" style="margin-bottom:8px"><b>${esc(t.title)}</b><div class="muted">${money(t.reward)} · ${esc(t.review_status||'')}</div></div>`).join(''):'<div class="card empty">No tasks.</div>'}</div>`}
+  else if(section==='proofs'){p.innerHTML=`<div class="card"><h3>Proof review queue</h3><p class="muted">Proof records are reviewed through the backend. Use the proof queue returned by your database integration.</p><div class="notice">Only authenticated admin/reviewer accounts can approve or reject submissions.</div></div>`}
+  else if(section==='withdrawals'){p.innerHTML=`<div class="card"><h3>Withdrawal requests</h3><p class="muted">Pending withdrawals are processed server-side. Current pending total is available on the overview board.</p><button class="btn" onclick="renderAdmin('overview')">Refresh overview</button></div><div class="section">${state.methods.map(m=>`<div class="card" style="margin-bottom:8px"><b>${esc(m.name)}</b><div class="muted">Minimum ${money(m.minimum_amount)} · Fee ${m.fee_type==='percent'?Number(m.fee_value)+'%':money(m.fee_value)}</div></div>`).join('')}</div>`}
+  else if(section==='users'){p.innerHTML=`<div class="card form"><h3>User management</h3><input id="userSearch" class="field" placeholder="Search username or Telegram ID"><button class="btn" onclick="toast('User search is ready for the connected admin data source.')">Search</button><div class="notice">User moderation actions must be performed through authenticated admin endpoints.</div></div>`}
+  else if(section==='reviewers'){p.innerHTML=`<div class="card"><h3>Reviewer / moderator applications</h3><p class="muted">Review pending applications and assign staff roles from the secured admin backend.</p><div class="notice">No fake applicants are displayed.</div></div>`}
+  else if(section==='channels'){p.innerHTML=`<div class="card"><h3>Channel verification</h3><p class="muted">Manage the 10 configured Telegram verification slots.</p>${(state.boot.channels||[]).map(c=>`<div class="card" style="margin-top:8px"><b>Slot ${c.slot_number}</b><div class="muted">${esc(c.username||'Not configured')}</div><button class="btn small" onclick="editChannel(${Number(c.slot_number)})">Configure</button></div>`).join('')}</div>`}
+  else if(section==='events'){p.innerHTML=`<div class="card form"><h3>Create event</h3><input id="evTitle" class="field" placeholder="Event title"><textarea id="evDesc" class="field" rows="3" placeholder="Description"></textarea><input id="evStart" class="field" type="datetime-local"><button class="btn primary" onclick="saveEvent()">Create event</button></div>`}
+  else if(section==='settings'){p.innerHTML=`<div class="card"><h3>Platform settings</h3><p class="muted">Settings are loaded from the live backend. Changes should be made deliberately because they affect users.</p><button class="btn" onclick="toast('Settings panel connected.')">Refresh</button></div>`}
+ }catch(e){p.innerHTML='<div class="card empty">'+esc(e.message)+'</div>'}
+}
+async function saveAdminTask(){try{await api('admin_save_task',{task:{title:$('#atTitle').value,description:$('#atDesc').value,reward:Number($('#atReward').value||0),quantity:Number($('#atQty').value||0),category:$('#atCategory').value,active:true}});toast('Task saved.');await boot();renderAdmin('tasks')}catch(e){toast(e.message)}}
+async function saveEvent(){try{await api('admin_save_event',{event:{title:$('#evTitle').value,description:$('#evDesc').value,starts_at:new Date($('#evStart').value).toISOString(),active:true}});toast('Event created.');renderAdmin('events')}catch(e){toast(e.message)}}
+function editChannel(slot){modal('Channel slot '+slot,`<div class="form"><input id="chUser" class="field" placeholder="@channel_username"><input id="chTitle" class="field" placeholder="Channel title"><button class="btn primary" onclick="saveChannel(${slot})">Save channel</button></div>`)}
+async function saveChannel(slot){try{await api('admin_set_channel',{slot_number:slot,username:$('#chUser').value,title:$('#chTitle').value,enabled:true,verification_required:true});closeModal();toast('Channel saved.');renderAdmin('channels')}catch(e){toast(e.message)}}
+function openPostTask(){modal('Post a P2P task',`<div class="form"><input id="ptTitle" class="field" placeholder="Task title"><textarea id="ptDesc" class="field" rows="4" placeholder="Instructions and proof requirements"></textarea><div class="grid"><input id="ptReward" class="field" type="number" placeholder="Price per person"><input id="ptQty" class="field" type="number" placeholder="Quantity"></div><div class="notice">Service fee and required deposit are determined by the backend.</div><button class="btn primary" onclick="toast('Task posting endpoint can be connected to the P2P task workflow.')">Submit for admin review</button></div>`)}
+window.addEventListener('load',boot);
+</script>
+</body>
+</html>
